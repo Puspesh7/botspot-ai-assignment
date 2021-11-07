@@ -1,23 +1,50 @@
 import logo from './logo.svg';
 import './App.css';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from "react-router-dom";
+import { useEffect,useState } from 'react';
+import LoginScreen from './Screen/LoginScreen';
+import { auth } from './firebase';
+import ProfileScreen from './Screen/ProfileScreen';
+import { onAuthStateChanged } from '@firebase/auth';
+import { sendSignInLinkToEmail } from 'firebase/auth';
+
 
 function App() {
+
+  const [user,setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe =  onAuthStateChanged(auth,(user) => {
+      if(user){
+        //user has logged in 
+        console.log(user);
+        setUser(user);
+      }
+      else{
+        //user has logged out
+        setUser(null);
+      }
+    })
+    return unsubscribe;
+  })
+
+  const getUser = (user) =>{
+    if(user)
+    {
+      setUser(user);
+    }
+  }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {!user ? (
+      <LoginScreen getUser = {getUser}/>
+      ) : (
+        <ProfileScreen userEmail = {user.email}/>
+      )}
     </div>
   );
 }
